@@ -20,6 +20,7 @@ namespace ElevenNote.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Route("Register")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegister model)
         {
             if (!ModelState.IsValid)
@@ -30,6 +31,18 @@ namespace ElevenNote.WebAPI.Controllers
                 return Ok("User registered.");
 
             return BadRequest("User could not be registered.");
+        }
+
+        [HttpGet]
+        [Route("{userId:int}")]
+        public async Task<IActionResult> GetById([FromRoute] int userId)
+        {
+            var userDetail = await _service.GetUserById(userId);
+
+            if (userDetail == null)
+                return NotFound();
+
+            return Ok(userDetail);
         }
     }
 }
