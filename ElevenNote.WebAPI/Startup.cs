@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ElevenNote.Data;
+using ElevenNote.Services.Note;
 using ElevenNote.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -37,6 +38,7 @@ namespace ElevenNote.WebAPI
 
             // Add User Service/Interface with .AddScoped
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<INoteService, NoteService>();
 
             // Bearer Token Configuration
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
