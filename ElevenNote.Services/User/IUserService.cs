@@ -9,8 +9,8 @@ namespace ElevenNote.Services.User
 {
     public interface IUserService
     {
-        Task<bool> RegisterUser(UserRegister model);
-        Task<UserDetail> GetUserById(int userId);
-        Task<TokenResponse> GetToken(TokenRequest model);
+        Task<bool> RegisterUserAsync(UserRegister model);
+        Task<UserDetail> GetUserByIdAsync(int userId);
+        Task<TokenResponse> GetTokenAsync(TokenRequest model);
     }
 }

@@ -26,7 +26,7 @@ namespace ElevenNote.Services.User
             _configuration = configuration;
         }
 
-        public async Task<bool> RegisterUser(UserRegister model)
+        public async Task<bool> RegisterUserAsync(UserRegister model)
         {
             if (await GetUserByEmail(model.Email) != null || await GetUserByUsername(model.Username) != null)
                 return false;
@@ -47,7 +47,7 @@ namespace ElevenNote.Services.User
             return await _context.SaveChangesAsync() == 1;
         }
 
-        public async Task<UserDetail> GetUserById(int userId)
+        public async Task<UserDetail> GetUserByIdAsync(int userId)
         {
             var entity = await _context.Users.FindAsync(userId);
             if (entity == null)
@@ -66,10 +66,16 @@ namespace ElevenNote.Services.User
             return detail;
         }
 
-        public async Task<TokenResponse> GetToken(TokenRequest model)
+        public async Task<TokenResponse> GetTokenAsync(TokenRequest model)
         {
             var userEntity = await GetUserByUsername(model.Username);
             if (model == null)
+                return null;
+
+            var passwordHasher = new PasswordHasher<UserEntity>();
+
+            var verifyPasswordResult = passwordHasher.VerifyHashedPassword(userEntity, userEntity.Password, model.Password);
+            if (verifyPasswordResult != PasswordVerificationResult.Success)
                 return null;
 
             // using System.IdentityModel.Tokens.Jwt;

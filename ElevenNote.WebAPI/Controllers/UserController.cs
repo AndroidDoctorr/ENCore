@@ -28,7 +28,7 @@ namespace ElevenNote.WebAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var registerResult = await _service.RegisterUser(model);
+            var registerResult = await _service.RegisterUserAsync(model);
             if (registerResult)
                 return Ok("User registered.");
 
@@ -40,7 +40,7 @@ namespace ElevenNote.WebAPI.Controllers
         [Route("{userId:int}")]
         public async Task<IActionResult> GetById([FromRoute] int userId)
         {
-            var userDetail = await _service.GetUserById(userId);
+            var userDetail = await _service.GetUserByIdAsync(userId);
 
             if (userDetail == null)
                 return NotFound();
@@ -52,7 +52,7 @@ namespace ElevenNote.WebAPI.Controllers
         [Route("~/api/Token")]
         public async Task<IActionResult> Token([FromBody] TokenRequest request)
         {
-            var tokenResponse = await _service.GetToken(request);
+            var tokenResponse = await _service.GetTokenAsync(request);
             if (tokenResponse is null)
                 return BadRequest("Invalid user username or password.");
 

@@ -8,7 +8,7 @@ namespace ElevenNote.Data.Entities
     public class NoteEntity
     {
         [Key]
-        public int NoteId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         public int OwnerId { get; set; }
