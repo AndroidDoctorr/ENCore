@@ -13,5 +13,6 @@ namespace ElevenNote.Services.Note
         Task<IEnumerable<NoteListItem>> GetAllNotesAsync();
         Task<bool> CreateNoteAsync(NoteCreate model);
         Task<NoteDetail> GetNoteByIdAsync(int noteId);
+        Task<bool> UpdateNoteAsync(NoteUpdate model);
     }
 }

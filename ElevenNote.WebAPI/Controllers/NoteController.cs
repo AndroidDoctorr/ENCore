@@ -23,6 +23,7 @@ namespace ElevenNote.WebAPI.Controllers
             _service = service;
         }
 
+        // GET: api/Note
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -35,8 +36,9 @@ namespace ElevenNote.WebAPI.Controllers
             return Ok(await _service.GetAllNotesAsync());
         }
 
+        // POST: api/Note
         [HttpPost]
-        public async Task<IActionResult> Post(NoteCreate model)
+        public async Task<IActionResult> Post([FromBody] NoteCreate model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -47,15 +49,17 @@ namespace ElevenNote.WebAPI.Controllers
 
             _service.SetUserId(userId.Value);
 
-            if (await _service.CreateNoteAsync(model))
+            var createResult = await _service.CreateNoteAsync(model);
+            if (createResult)
                 return Ok("Note was created.");
 
             return BadRequest("Note could not be created.");
         }
 
+        // GET: api/Note/5
         [HttpGet]
         [Route("{noteId:int}")]
-        public async Task<IActionResult> GetById(int noteId)
+        public async Task<IActionResult> GetById([FromRoute] int noteId)
         {
             var userId = GetUserId();
             if (!userId.HasValue)
@@ -69,6 +73,25 @@ namespace ElevenNote.WebAPI.Controllers
                 return Ok(detail);
 
             return NotFound(detail);
+        }
+
+        // PUT: api/Note
+        [HttpPut]
+        public async Task<IActionResult> Put([FromBody] NoteUpdate model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized();
+
+            _service.SetUserId(userId.Value);
+
+            if (await _service.UpdateNoteAsync(model))
+                return Ok($"Note {model.Id} was updated.");
+
+            return BadRequest($"Note {model.Id} could not be updated.");
         }
 
         private int? GetUserId()

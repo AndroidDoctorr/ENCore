@@ -2,6 +2,7 @@
 using ElevenNote.Data.Entities;
 using ElevenNote.Models.Note;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,6 +69,20 @@ namespace ElevenNote.Services.Note
             };
 
             return detail;
+        }
+
+        public async Task<bool> UpdateNoteAsync(NoteUpdate model)
+        {
+            var entity = await _context.Notes.FindAsync(model.Id);
+
+            if (entity is null || entity.OwnerId != _userId)
+                return false;
+
+            entity.Title = model.Title;
+            entity.Content = model.Title;
+            entity.ModifiedUtc = DateTimeOffset.Now;
+
+            return await _context.SaveChangesAsync() == 1;
         }
 
         public void SetUserId(int userId) => _userId = userId;
