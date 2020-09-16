@@ -1,4 +1,5 @@
-﻿using ElevenNote.Models.User;
+﻿using ElevenNote.Models.Token;
+using ElevenNote.Models.User;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,5 +11,6 @@ namespace ElevenNote.Services.User
     {
         Task<bool> RegisterUser(UserRegister model);
         Task<UserDetail> GetUserById(int userId);
+        Task<TokenResponse> GetToken(TokenRequest model);
     }
 }

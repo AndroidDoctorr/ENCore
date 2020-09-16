@@ -1,11 +1,16 @@
 ﻿using ElevenNote.Data;
 using ElevenNote.Data.Entities;
+using ElevenNote.Models.Token;
 using ElevenNote.Models.User;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mime;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,10 +18,12 @@ namespace ElevenNote.Services.User
 {
     public class UserService : IUserService
     {
+        private readonly IConfiguration _configuration;
         private readonly ApplicationDbContext _context;
-        public UserService(ApplicationDbContext context)
+        public UserService(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<bool> RegisterUser(UserRegister model)
@@ -57,6 +64,45 @@ namespace ElevenNote.Services.User
             };
 
             return detail;
+        }
+
+        public async Task<TokenResponse> GetToken(TokenRequest model)
+        {
+            var userEntity = await GetUserByUsername(model.Username);
+            if (model == null)
+                return null;
+
+            // using System.IdentityModel.Tokens.Jwt;
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+                new Claim("Id", userEntity.Id.ToString()),
+                new Claim("FirstName", userEntity.FirstName),
+                new Claim("LastName", userEntity.LastName),
+                new Claim("Username", userEntity.Username),
+                new Claim("Email", userEntity.Email)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+
+            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(issuer: _configuration["Jwt:Issuer"],
+                                             audience: _configuration["Jwt:Audience"],
+                                             claims: claims,
+                                             notBefore: DateTime.UtcNow,
+                                             expires: DateTime.UtcNow.AddDays(15),
+                                             signingCredentials: signIn);
+
+            var tokenResponse = new TokenResponse
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                IssuedAt = token.ValidFrom,
+                Expires = token.ValidTo
+            };
+            return tokenResponse;
         }
 
         private async Task<UserEntity> GetUserByEmail(string email)

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using ElevenNote.Data;
 using ElevenNote.Services.User;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ElevenNote.WebAPI
 {
@@ -35,6 +38,21 @@ namespace ElevenNote.WebAPI
             // Add User Service/Interface with .AddScoped
             services.AddScoped<IUserService, UserService>();
 
+            // Bearer Token Configuration
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidAudience = Configuration["Jwt:Audience"],
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"]))
+                };
+            });
+
             services.AddControllers();
         }
 
@@ -49,6 +67,9 @@ namespace ElevenNote.WebAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            // Added to allow Authorization Attributes on Controllers
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ElevenNote.Models.Token;
 using ElevenNote.Models.User;
 using ElevenNote.Services.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,6 +36,7 @@ namespace ElevenNote.WebAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         [Route("{userId:int}")]
         public async Task<IActionResult> GetById([FromRoute] int userId)
         {
@@ -43,6 +46,17 @@ namespace ElevenNote.WebAPI.Controllers
                 return NotFound();
 
             return Ok(userDetail);
+        }
+
+        [HttpPost]
+        [Route("~/api/Token")]
+        public async Task<IActionResult> Token([FromBody] TokenRequest request)
+        {
+            var tokenResponse = await _service.GetToken(request);
+            if (tokenResponse is null)
+                return BadRequest("Invalid user username or password.");
+
+            return Ok(tokenResponse);
         }
     }
 }
