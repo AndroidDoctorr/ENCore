@@ -30,7 +30,7 @@ namespace ElevenNote.WebAPI.Controllers
             if (!userId.HasValue)
                 return Unauthorized();
 
-            _service.UserId = userId.Value;
+            _service.SetUserId(userId.Value);
 
             return Ok(await _service.GetAllNotesAsync());
         }
@@ -45,12 +45,30 @@ namespace ElevenNote.WebAPI.Controllers
             if (!userId.HasValue)
                 return Unauthorized();
 
-            _service.UserId = userId.Value;
+            _service.SetUserId(userId.Value);
 
             if (await _service.CreateNoteAsync(model))
                 return Ok("Note was created.");
 
             return BadRequest("Note could not be created.");
+        }
+
+        [HttpGet]
+        [Route("{noteId:int}")]
+        public async Task<IActionResult> GetById(int noteId)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized();
+
+            _service.SetUserId(userId.Value);
+
+            var detail = await _service.GetNoteByIdAsync(noteId);
+
+            if (detail != null)
+                return Ok(detail);
+
+            return NotFound(detail);
         }
 
         private int? GetUserId()
