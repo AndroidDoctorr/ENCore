@@ -8,6 +8,8 @@ namespace ElevenNote.Services.Note
 {
     public interface INoteService
     {
-        Task<IEnumerable<NoteListItem>> GetAllNotesAsync(int ownerId);
+        int UserId { get; set; }
+        Task<IEnumerable<NoteListItem>> GetAllNotesAsync();
+        Task<bool> CreateNoteAsync(NoteCreate model);
     }
 }

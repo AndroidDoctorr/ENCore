@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using ElevenNote.Models.Note;
 using ElevenNote.Services.Note;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -26,10 +27,30 @@ namespace ElevenNote.WebAPI.Controllers
         public async Task<IActionResult> Get()
         {
             var userId = GetUserId();
-            if (userId.HasValue)
-                return Ok(await _service.GetAllNotesAsync(userId.Value));
+            if (!userId.HasValue)
+                return Unauthorized();
 
-            return Unauthorized();
+            _service.UserId = userId.Value;
+
+            return Ok(await _service.GetAllNotesAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Post(NoteCreate model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized();
+
+            _service.UserId = userId.Value;
+
+            if (await _service.CreateNoteAsync(model))
+                return Ok("Note was created.");
+
+            return BadRequest("Note could not be created.");
         }
 
         private int? GetUserId()
