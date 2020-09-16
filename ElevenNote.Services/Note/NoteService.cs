@@ -48,7 +48,9 @@ namespace ElevenNote.Services.Note
             };
 
             _context.Notes.Add(noteEntity);
-            return await _context.SaveChangesAsync() == 1;
+
+            var numberOfChanges = await _context.SaveChangesAsync();
+            return numberOfChanges == 1;
         }
 
         public async Task<NoteDetail> GetNoteByIdAsync(int noteId)
@@ -84,6 +86,17 @@ namespace ElevenNote.Services.Note
 
             return await _context.SaveChangesAsync() == 1;
         }
+
+        public async Task<bool> DeleteNoteAsync(int noteId)
+        {
+            var entity = await _context.Notes.FirstOrDefaultAsync(e => e.Id == noteId && e.OwnerId == _userId);
+            if (entity is null)
+                return false;
+
+            _context.Notes.Remove(entity);
+            return await _context.SaveChangesAsync() == 1;
+        }
+
 
         public void SetUserId(int userId) => _userId = userId;
     }

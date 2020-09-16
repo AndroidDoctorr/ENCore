@@ -94,6 +94,22 @@ namespace ElevenNote.WebAPI.Controllers
             return BadRequest($"Note {model.Id} could not be updated.");
         }
 
+        // DELETE: api/Note/5
+        [HttpDelete]
+        [Route("{noteId:int}")]
+        public async Task<IActionResult> Delete([FromRoute]int noteId)
+        {
+            var userId = GetUserId();
+            if (!userId.HasValue)
+                return Unauthorized();
+
+            _service.SetUserId(userId.Value);
+
+            return await _service.DeleteNoteAsync(noteId) 
+                ? (IActionResult)Ok() 
+                : (IActionResult)BadRequest();
+        }
+
         private int? GetUserId()
         {
             var claimsIdentity = User.Identity as ClaimsIdentity;
