@@ -77,7 +77,7 @@ namespace ElevenNote.Services.Note
         {
             var entity = await _context.Notes.FindAsync(model.Id);
 
-            if (entity is null || entity.OwnerId != _userId)
+            if (entity?.OwnerId != _userId)
                 return false;
 
             entity.Title = model.Title;
@@ -89,14 +89,13 @@ namespace ElevenNote.Services.Note
 
         public async Task<bool> DeleteNoteAsync(int noteId)
         {
-            var entity = await _context.Notes.FirstOrDefaultAsync(e => e.Id == noteId && e.OwnerId == _userId);
-            if (entity is null)
+            var entity = await _context.Notes.FindAsync(noteId);
+            if (entity?.OwnerId != _userId)
                 return false;
 
             _context.Notes.Remove(entity);
             return await _context.SaveChangesAsync() == 1;
         }
-
 
         public void SetUserId(int userId) => _userId = userId;
     }

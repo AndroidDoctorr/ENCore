@@ -106,8 +106,8 @@ namespace ElevenNote.WebAPI.Controllers
             _service.SetUserId(userId.Value);
 
             return await _service.DeleteNoteAsync(noteId) 
-                ? (IActionResult)Ok() 
-                : (IActionResult)BadRequest();
+                ? Ok($"Note {noteId} was deleted.") as IActionResult 
+                : BadRequest($" {noteId} could not be deleted.");
         }
 
         private int? GetUserId()

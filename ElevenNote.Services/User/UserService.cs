@@ -69,7 +69,7 @@ namespace ElevenNote.Services.User
         public async Task<TokenResponse> GetTokenAsync(TokenRequest model)
         {
             var userEntity = await GetUserByUsername(model.Username);
-            if (model == null)
+            if (userEntity == null)
                 return null;
 
             var passwordHasher = new PasswordHasher<UserEntity>();
@@ -79,11 +79,13 @@ namespace ElevenNote.Services.User
                 return null;
 
             // using System.IdentityModel.Tokens.Jwt;
+            return GenerateToken(userEntity);
+        }
+
+        private TokenResponse GenerateToken(UserEntity userEntity)
+        {
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
                 new Claim("Id", userEntity.Id.ToString()),
                 new Claim("FirstName", userEntity.FirstName),
                 new Claim("LastName", userEntity.LastName),
@@ -93,18 +95,25 @@ namespace ElevenNote.Services.User
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
 
-            var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(issuer: _configuration["Jwt:Issuer"],
-                                             audience: _configuration["Jwt:Audience"],
-                                             claims: claims,
-                                             notBefore: DateTime.UtcNow,
-                                             expires: DateTime.UtcNow.AddDays(15),
-                                             signingCredentials: signIn);
+            var tokenDescripter = new SecurityTokenDescriptor
+            {
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"],
+                Subject = new ClaimsIdentity(claims),
+                IssuedAt = DateTime.UtcNow,
+                Expires = DateTime.UtcNow.AddDays(15),
+                SigningCredentials = credentials
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            var token = tokenHandler.CreateToken(tokenDescripter);
 
             var tokenResponse = new TokenResponse
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Token = tokenHandler.WriteToken(token),
                 IssuedAt = token.ValidFrom,
                 Expires = token.ValidTo
             };
